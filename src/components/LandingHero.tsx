@@ -16,7 +16,7 @@ const LandingHero = () => (
       Focus on what matters: <span className="font-semibold text-primary">winning business</span>.
     </p>
     <div className="flex gap-4 z-10 animate-scale-in">
-      <Button size="xl" className="rounded-full px-8 py-5 text-lg font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition">
+      <Button size="lg" className="rounded-full px-8 py-5 text-lg font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition">
         Get Started Free
         <ArrowRight size={22} className="ml-2" />
       </Button>
