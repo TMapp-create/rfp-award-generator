@@ -14,6 +14,7 @@ interface AuditLogData {
   record_id?: string;
   old_data?: Record<string, any>;
   new_data?: Record<string, any>;
+  details?: Record<string, any>;
 }
 
 export const useSecurityLog = () => {
@@ -42,7 +43,11 @@ export const useSecurityLog = () => {
       const { error } = await supabase
         .from('audit_logs')
         .insert({
-          ...auditData,
+          action: auditData.action,
+          table_name: auditData.table_name,
+          record_id: auditData.record_id,
+          old_data: auditData.old_data,
+          new_data: auditData.new_data,
           user_id: user?.id,
           ip_address: await getClientIP(),
           user_agent: navigator.userAgent

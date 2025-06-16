@@ -98,7 +98,7 @@ export const useSecureAuth = () => {
         // Log successful sign in
         logAuditEvent({
           action: 'user_signin',
-          details: { email: sanitizedEmail }
+          new_data: { email: sanitizedEmail }
         });
       }
 
@@ -178,7 +178,7 @@ export const useSecureAuth = () => {
         // Log successful sign up
         logAuditEvent({
           action: 'user_signup',
-          details: { email: sanitizedEmail }
+          new_data: { email: sanitizedEmail }
         });
       }
 
