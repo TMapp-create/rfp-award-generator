@@ -4,26 +4,44 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
 import { checkDependencySecurity } from "@/utils/security";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface SecurityStatusProps {
   className?: string;
 }
 
 const SecurityStatus = ({ className }: SecurityStatusProps) => {
+  const { user } = useAuth();
   const [securityStatus, setSecurityStatus] = useState({
     rls: true,
     rateLimit: true,
     inputValidation: true,
     monitoring: true,
     dependencies: 'checking' as 'clean' | 'issues_found' | 'checking',
+    database: 'checking' as 'connected' | 'error' | 'checking',
   });
 
   useEffect(() => {
-    const checkSecurity = () => {
+    const checkSecurity = async () => {
+      // Check dependency security
       const depCheck = checkDependencySecurity();
+      
+      // Check database connectivity
+      let dbStatus: 'connected' | 'error' = 'error';
+      try {
+        const { error } = await supabase.from('profiles').select('count').limit(1);
+        if (!error) {
+          dbStatus = 'connected';
+        }
+      } catch {
+        dbStatus = 'error';
+      }
+
       setSecurityStatus(prev => ({
         ...prev,
-        dependencies: depCheck.status as 'clean' | 'issues_found'
+        dependencies: depCheck.status as 'clean' | 'issues_found',
+        database: dbStatus
       }));
     };
 
@@ -31,7 +49,7 @@ const SecurityStatus = ({ className }: SecurityStatusProps) => {
   }, []);
 
   const getStatusIcon = (status: boolean | string) => {
-    if (status === true || status === 'clean') {
+    if (status === true || status === 'clean' || status === 'connected') {
       return <CheckCircle className="h-4 w-4 text-green-500" />;
     } else if (status === 'checking') {
       return <Clock className="h-4 w-4 text-yellow-500" />;
@@ -41,7 +59,7 @@ const SecurityStatus = ({ className }: SecurityStatusProps) => {
   };
 
   const getStatusBadge = (status: boolean | string) => {
-    if (status === true || status === 'clean') {
+    if (status === true || status === 'clean' || status === 'connected') {
       return <Badge variant="secondary" className="bg-green-100 text-green-800">Active</Badge>;
     } else if (status === 'checking') {
       return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Checking</Badge>;
@@ -56,6 +74,11 @@ const SecurityStatus = ({ className }: SecurityStatusProps) => {
         <CardTitle className="flex items-center gap-2">
           <Shield className="h-5 w-5" />
           Security Status
+          {user && (
+            <Badge variant="outline" className="ml-auto">
+              Authenticated
+            </Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -97,6 +120,14 @@ const SecurityStatus = ({ className }: SecurityStatusProps) => {
             <span className="text-sm">Dependency Security</span>
           </div>
           {getStatusBadge(securityStatus.dependencies)}
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {getStatusIcon(securityStatus.database)}
+            <span className="text-sm">Database Connection</span>
+          </div>
+          {getStatusBadge(securityStatus.database)}
         </div>
       </CardContent>
     </Card>
